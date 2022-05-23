@@ -13,7 +13,7 @@ from models.scinet.trainer import Trainer_SCINet
 class Forecasting():
     def __init__(self, config, train_data, test_data, test_date):
         """
-        Initialize Encode class and prepare dataloaders for training and testing.
+        Initialize Forecasting class
 
         :param config: config
         :type config: dictionary
@@ -139,11 +139,11 @@ class Forecasting():
         # load best model
         init_model.model.load_state_dict(torch.load(best_model_path))
 
-        # get prediction and metrics: shape=(the number of prediction data, 1)
+        # get prediction results
         # the number of prediction data = forecast_step * ((len(test_data)-window_size-forecast_step) // forecast_step + 1)
         # start time point of prediction = window_size
         # end time point of prediction = len(test_data) - (len(test_data)-window_size-forecast_step) % forecast_step - 1
-        pred_data = self.trainer.test(init_model, self.test_loader)
+        pred_data = self.trainer.test(init_model, self.test_loader)  # shape=(the number of prediction data, 1)
 
         # inverse normalization
         pred_data = self.scaler.inverse_transform(pred_data)
@@ -169,11 +169,11 @@ class Forecasting():
         """
         Get train, validation, and test DataLoaders
 
-        :param x_train: train data whose shape is (# observations, # features, # time steps)
-        :type x_train: numpy array
+        :param train_data: train data whose shape is (# time steps, )
+        :type train_data: numpy array
 
-        :param x_test: test data whose shape is (# observations, # features, # time steps)
-        :type x_test: numpy array
+        :param test_data: test data whose shape is (# time steps, )
+        :type test_data: numpy array
 
         :param window_size: window size
         :type window_size: int
