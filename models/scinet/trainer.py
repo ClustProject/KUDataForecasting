@@ -3,7 +3,7 @@ import time
 import torch.nn as nn
 import numpy as np
 from models.scinet.SCINet import SCINet
-from utils.tools import EarlyStopping , save_model
+from models.scinet.utils.tools import EarlyStopping
 from torch import optim
 
 class Trainer_SCINet:
