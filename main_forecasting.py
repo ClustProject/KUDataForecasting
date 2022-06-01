@@ -143,12 +143,15 @@ class Forecasting():
         # the number of prediction data = forecast_step * ((len(test_data)-window_size-forecast_step) // forecast_step + 1)
         # start time point of prediction = window_size
         # end time point of prediction = len(test_data) - (len(test_data)-window_size-forecast_step) % forecast_step - 1
-        pred_data = self.trainer.test(init_model, self.test_loader)  # shape=(the number of prediction data, 1)
-
+        
+        # DIFF(subin) : 06.02
+        # pred_data = self.trainer.test(init_model, self.test_loader)  # shape=(the number of prediction data, 1)
+        pred_data = init_model.test(self.test_loader)
+                
         # inverse normalization
         pred_data = self.scaler.inverse_transform(pred_data)
         pred_data = pred_data.squeeze(-1)  # shape=(the number of prediction data, )
-
+        
         # select time index for prediction data
         start_idx = self.parameter['window_size']
         end_idx = len(self.test_data) - (len(self.test_data)-self.parameter['window_size']-self.parameter['forecast_step']) % self.parameter['forecast_step'] - 1

@@ -1,3 +1,5 @@
+from .exp.exp_informer import Exp_Informer
+
 class Trainer_Informer:
     def __init__(self, config):
         """
@@ -6,8 +8,8 @@ class Trainer_Informer:
         :param config: configuration
         :type config: dictionary
         """
-
-        pass
+        self.exp = Exp_Informer(**config)
+        self.model = self.exp.model
 
     def fit(self, train_loader, valid_loader):
         """
@@ -22,9 +24,11 @@ class Trainer_Informer:
         :return: trained model
         :rtype: model
         """
-
-        pass
-
+    
+        best_model = self.exp.train(train_loader, valid_loader)
+        
+        return best_model
+    
     def test(self, test_loader):
         """
         Predict future values based on the best trained model
@@ -35,5 +39,7 @@ class Trainer_Informer:
         :return: predicted values
         :rtype: numpy array
         """
+        
+        pred_data = self.exp.test(test_loader)
 
-        pass
+        return pred_data
