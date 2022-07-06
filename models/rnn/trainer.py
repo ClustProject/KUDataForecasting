@@ -7,8 +7,10 @@ import torch.nn as nn
 import torch.optim as optim
 
 from models.rnn.model  import RNN
+
+
 class Trainer_RNN:
-    def __init__(self, model_name, config):
+    def __init__(self, config, model_name):
         """
         Initialize class
 
@@ -16,9 +18,12 @@ class Trainer_RNN:
         :type config: dictionary
         """
         
-        # lsrm or gru
-        self.model_name = model_name
+        self.num_epochs = config['num_epochs']
+        self.dropout = config['dropout']
+        self.lr = config['lr']
+        self.device = config['device']
 
+        self.model_name = model_name
         self.model = RNN(
             config['input_size'], 
             config['hidden_size'], 
@@ -26,15 +31,7 @@ class Trainer_RNN:
             config['bidirectional'], 
             self.model_name, 
             config['forecast_step'],
-            config['device'])
-        
-        self.num_epochs = config['num_epochs']
-        self.dropout = config['dropout']
-        self.lr = config['lr']
-        self.device = config['device']
-        
-        self.model = self.model.to(self.device)
-        
+            config['device']).to(self.device)
 
     def fit(self, train_loader, valid_loader):
         """
@@ -52,17 +49,16 @@ class Trainer_RNN:
 
         since = time.time()
 
-        val_rmse_history = []
-
         best_model_wts = copy.deepcopy(self.model.state_dict())
-        best_rmse = 10000000
+        best_val_loss = 10000000
 
         optimizer = optim.Adam(self.model.parameters(), lr=self.lr)
         criterion = nn.MSELoss()
         
         for epoch in range(self.num_epochs):
-            print('Epoch {}/{}'.format(epoch + 1, self.num_epochs))
-            print('-' * 10)
+            if epoch == 0 or (epoch + 1) % 10 == 0:
+                print()
+                print('Epoch {}/{}'.format(epoch + 1, self.num_epochs))
 
             # 각 epoch마다 순서대로 training과 validation을 진행
             for phase in ['train', 'val']:
@@ -103,25 +99,21 @@ class Trainer_RNN:
                 epoch_loss = running_loss / running_total
                 epoch_rmse = np.sqrt(running_loss / running_total)
 
-                print('{} Loss: {:.4f} RMSE: {:.4f}'.format(phase, epoch_loss, epoch_rmse))
+                if epoch == 0 or (epoch + 1) % 10 == 0:
+                    print('{} Loss: {:.4f} RMSE: {:.4f}'.format(phase, epoch_loss, epoch_rmse))
 
                 # validation 단계에서 validation loss가 감소할 때마다 best model 가중치를 업데이트함
-                if phase == 'val' and epoch_rmse < best_rmse:
-                    best_rmse = epoch_rmse
+                if phase == 'val' and epoch_loss < best_val_loss:
+                    best_val_loss = epoch_rmse
                     best_model_wts = copy.deepcopy(self.model.state_dict())
-                if phase == 'val':
-                    val_rmse_history.append(epoch_rmse)
-
-            print()
 
         # 전체 학습 시간 계산
         time_elapsed = time.time() - since
-        print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-        print('Best val RMSE: {:4f}'.format(best_rmse))
+        print('\nTraining complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+        print('Best val MSE: {:4f}'.format(best_val_loss))
 
         # validation loss가 가장 낮았을 때의 best model 가중치를 불러와 best model을 구축함
         self.model.load_state_dict(best_model_wts)
-        
         return self.model
     
     def test(self, test_loader):
@@ -136,15 +128,14 @@ class Trainer_RNN:
         """
 
         self.model.eval()
+
         preds = []
         with torch.no_grad():
             for inputs, _ in test_loader:
                 inputs = inputs.to(self.device)
-                
                 outputs = self.model(inputs)
                 preds.append(outputs.detach().cpu().numpy())
 
         preds = np.concatenate(preds)
         preds = preds.reshape(-1, 1)
-        
         return preds

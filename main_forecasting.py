@@ -75,9 +75,9 @@ class Forecasting():
 
         # build initialized model
         if self.model_name == 'lstm':
-            model = Trainer_RNN(self.model_name, self.parameter)
+            model = Trainer_RNN(self.parameter, self.model_name)
         elif self.model_name == 'gru':
-            model = Trainer_RNN(self.model_name, self.parameter)
+            model = Trainer_RNN(self.parameter, self.model_name)
         elif self.model_name == 'informer':
             model = Trainer_Informer(self.parameter)
         elif self.model_name == 'scinet':
@@ -95,7 +95,7 @@ class Forecasting():
         :rtype: model
         """
 
-        print("Start training model\n")
+        print("Start training model")
 
         # train model
         best_model = init_model.fit(self.train_loader, self.valid_loader)
@@ -134,7 +134,7 @@ class Forecasting():
         :rtype: float
         """
 
-        print("Start testing data\n")
+        print("\nStart testing data\n")
 
         # load best model
         init_model.model.load_state_dict(torch.load(best_model_path))
@@ -143,10 +143,7 @@ class Forecasting():
         # the number of prediction data = forecast_step * ((len(test_data)-window_size-forecast_step) // forecast_step + 1)
         # start time point of prediction = window_size
         # end time point of prediction = len(test_data) - (len(test_data)-window_size-forecast_step) % forecast_step - 1
-        
-        # DIFF(subin) : 06.02
-        # pred_data = self.trainer.test(init_model, self.test_loader)  # shape=(the number of prediction data, 1)
-        pred_data = init_model.test(self.test_loader)
+        pred_data = init_model.test(self.test_loader)  # shape=(the number of prediction data, 1)
                 
         # inverse normalization
         pred_data = self.scaler.inverse_transform(pred_data)
@@ -157,15 +154,17 @@ class Forecasting():
         end_idx = len(self.test_data) - (len(self.test_data)-self.parameter['window_size']-self.parameter['forecast_step']) % self.parameter['forecast_step'] - 1
         test_date = self.test_date[start_idx:end_idx+1]
 
-        # merge prediction data with time index
-        pred_df = pd.DataFrame()
-        pred_df['date'] = test_date
-        pred_df['predicted_value'] = pred_data
-
         # calculate performance metrics
         true_data = self.test_data[start_idx:end_idx+1]
         mse = mean_squared_error(true_data, pred_data)
         mae = mean_absolute_error(true_data, pred_data)
+        
+        # merge prediction data with time index
+        pred_df = pd.DataFrame()
+        pred_df['actual_value'] = true_data
+        pred_df['predicted_value'] = pred_data
+        pred_df.index = test_date
+        pred_df.index.name = 'date'
         return pred_df, mse, mae
 
     def get_loaders(self, train_data, test_data, window_size, forecast_step, batch_size):
@@ -187,8 +186,11 @@ class Forecasting():
         :param batch_size: batch size
         :type batch_size: int
 
-        :return: train, validation, and test dataloaders
+        :return: train, validation, test dataloaders
         :rtype: DataLoader
+
+        :return: scaler fitted on train dataset
+        :rtype: StandardScaler
         """
         
         # shape 변환 for normalization: shape=(# time steps, 1)
@@ -212,10 +214,10 @@ class Forecasting():
             T = dataset.shape[0]
 
             # 전체 데이터를 forecast_step 크기의 sliding window 방식으로 window_size 크기의 time window로 분할하여 input 생성
-            windows = [dataset[i : i+window_size] for i in range(0, T-window_size-forecast_step, forecast_step)]
+            windows = [dataset[i : i+window_size] for i in range(0, T-window_size-forecast_step+1, forecast_step)]
 
             # input time window에 대하여 forecast_step 시점 만큼 미래의 데이터를 도출하여 예측 time window 생성
-            targets = [dataset[i+window_size : i+window_size+forecast_step] for i in range(0, T-window_size-forecast_step, forecast_step)]
+            targets = [dataset[i+window_size : i+window_size+forecast_step] for i in range(0, T-window_size-forecast_step+1, forecast_step)]
 
             datasets.append(torch.utils.data.TensorDataset(torch.FloatTensor(windows), torch.FloatTensor(targets)))
 

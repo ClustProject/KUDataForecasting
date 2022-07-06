@@ -121,9 +121,7 @@ class Interactor(nn.Module):
 
             d = x_odd - self.P(x_even)
             c = x_even + self.U(d)
-
             return (c, d)
-
 
 class InteractorLevel(nn.Module):
     def __init__(self, in_planes, kernel, dropout, groups , hidden_size, INN):
@@ -149,7 +147,6 @@ class SCINet_Tree(nn.Module):
         super().__init__()
         self.current_level = current_level
 
-
         self.workingblock = LevelSCINet(
             in_planes = in_planes,
             kernel_size = kernel_size,
@@ -157,7 +154,6 @@ class SCINet_Tree(nn.Module):
             groups= groups,
             hidden_size = hidden_size,
             INN = INN)
-
 
         if current_level!=0:
             self.SCINet_Tree_odd=SCINet_Tree(in_planes, current_level-1, kernel_size, dropout, groups, hidden_size, INN)
@@ -199,9 +195,7 @@ class EncoderTree(nn.Module):
             INN = INN)
         
     def forward(self, x):
-
         x= self.SCINet_Tree(x)
-
         return x
 
 class SCINet(nn.Module):
@@ -318,7 +312,6 @@ class SCINet(nn.Module):
         signal = torch.cat([torch.sin(scaled_time), torch.cos(scaled_time)], dim=1)  #[T, C]
         signal = F.pad(signal, (0, 0, 0, self.pe_hidden_size % 2))
         signal = signal.view(1, max_length, self.pe_hidden_size)
-    
         return signal
 
     def forward(self, x):
@@ -367,7 +360,6 @@ class SCINet(nn.Module):
                 x = x / (self.affine_weight + 1e-10)
                 x = x * stdev
                 x = x + means
-
             return x
 
         elif self.stacks == 2:
@@ -395,36 +387,8 @@ class SCINet(nn.Module):
                 x = x / (self.affine_weight + 1e-10)
                 x = x * stdev
                 x = x + means
-
             return x, MidOutPut
-
 
 def get_variable(x):
     x = Variable(x)
     return x.cuda() if torch.cuda.is_available() else x
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('--window_size', type=int, default=96)
-    parser.add_argument('--horizon', type=int, default=12)
-
-    parser.add_argument('--dropout', type=float, default=0.5)
-    parser.add_argument('--groups', type=int, default=1)
-
-    parser.add_argument('--hidden-size', default=1, type=int, help='hidden channel of module')
-    parser.add_argument('--INN', default=1, type=int, help='use INN or basic strategy')
-    parser.add_argument('--kernel', default=3, type=int, help='kernel size')
-    parser.add_argument('--dilation', default=1, type=int, help='dilation')
-    parser.add_argument('--positionalEcoding', type=bool, default=False)
-
-    parser.add_argument('--single_step_output_One', type=int, default=0)
-
-    args = parser.parse_args()
-
-    model = SCINet(output_len = args.horizon, input_len= args.window_size, input_dim = 9, hid_size = args.hidden_size, num_stacks = 1,
-                num_levels = 3, concat_len = 0, groups = args.groups, kernel = args.kernel, dropout = args.dropout,
-                 single_step_output_One = args.single_step_output_One, positionalE =  args.positionalEcoding, modified = True).cuda()
-    x = torch.randn(32, 96, 9).cuda()
-    y = model(x)
-    print(y.shape)

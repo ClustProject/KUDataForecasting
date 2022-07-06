@@ -23,12 +23,9 @@ class RNN(nn.Module):
         # bidirectional 여부에 따라 hidden state의 shape가 달라짐 (True: 2 * hidden_size, False: hidden_size)
         self.fc = nn.Linear(self.num_directions * hidden_size, forecast_step)
         
-    def forward(self, x):
-        # data dimension: (batch_size x seq_len x input_size)
-        
+    def forward(self, x): # (batch_size x seq_len x input_size)
         # initial hidden states 설정
         h0 = torch.zeros(self.num_directions * self.num_layers, x.size(0), self.hidden_size).to(self.device)
-        
         
         # 선택한 rnn_type의 RNN으로부터 output 도출
         if self.rnn_type in ['rnn', 'gru']:
@@ -39,6 +36,4 @@ class RNN(nn.Module):
             out, _ = self.rnn(x, (h0, c0))  # out: tensor of shape (batch_size, seq_length, hidden_size)
         
         out = self.fc(out[:, -1, :])
-
         return out
-    
