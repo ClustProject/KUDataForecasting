@@ -28,14 +28,14 @@ class Forecasting():
         :type test_date: numpy array
 
         example
-            >>> config1 = {
+            >>> config = {
                     "model": 'lstm',
                     "training": True,  # 학습 여부, 저장된 학습 완료 모델 존재시 False로 설정
                     "best_model_path": './ckpt/lstm.pt',  # 학습 완료 모델 저장 경로
                     "parameter": {
                         "input_size" : 1,  # 데이터 변수 개수, int
                         "window_size" : 48,  # input sequence의 길이, int
-                        "forecast_step" : 24,  # 예측할 미래 시점의 길이, int
+                        "forecast_step" : 1,  # 예측할 미래 시점의 길이, int
                         "num_layers" : 2,  # recurrent layers의 수, int(default: 2, 범위: 1 이상)
                         "hidden_size" : 64,  # hidden state의 차원, int(default: 64, 범위: 1 이상)
                         "dropout" : 0.1,  # dropout 확률, float(default: 0.1, 범위: 0 이상 1 이하)
