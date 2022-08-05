@@ -5,7 +5,6 @@
 
 **Time series forecasting 사용 시, 설정해야하는 값**
 * **model** : [‘lstm’, ‘gru’, ‘informer’, ‘scinet’] 중 선택
-* **training** : 모델 학습 여부, [True, False] 중 선택, 학습 완료된 모델이 저장되어 있다면 False 선택
 * **best_model_path** : 학습 완료된 모델을 저장할 경로
 
 * **시계열 forecasting 모델 hyperparameter :** 아래에 자세히 설명.
