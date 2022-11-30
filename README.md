@@ -50,7 +50,7 @@
 - **input_size** : 데이터 변수 개수, int
 - **window_size** : input sequence의 길이, int
 - **forecast_step** : 예측할 미래 시점의 길이, int
-- **label_len** : Decoder의 start token 길이, int(default: 12, 범위: 1 이상)
+- **label_len** : decoder의 start token 길이, int(default: 12, 범위: 1 이상)
 - **d_model** : 모델의 hidden dimension, int(default: 512, 범위: 1 이상)
 - **e_layers** : encoder layer 수, int(default: 2, 범위: 1 이상)
 - **d_layers** : decoder layer 수, int(default: 1, 범위: 1 이상)
