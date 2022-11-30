@@ -69,7 +69,7 @@
 
 #### 4. SCINet
 - **input_size** : 데이터 변수 개수, int
-- **window_size** : input sequence의 길이, int
+- **window_size** : input sequence의 길이, int ## 2의 지수승 input 필요 (ex,64,128,256 ...)
 - **forecast_step** : 예측할 미래 시점의 길이, int
 - **levels** : Tree의 depth, int(default: 2, 범위: input sequence의 로그 값 이하, 2~4 설정 권장)
 - **stacks** : SCINet 구조를 중첩하는 횟수 (default : 1, stack 값은 1을 고정적으로 사용)
