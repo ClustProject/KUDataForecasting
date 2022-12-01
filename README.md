@@ -22,7 +22,7 @@
 - **window_size** : input sequence의 길이, int
 - **forecast_step** : 예측할 미래 시점의 길이, int
 - **num_layers** : recurrent layers의 수, int(default: 2, 범위: 1 이상)
-- **hidden_size** : hidden state의 차원, int(default: 64, 범위: 1 이상)
+- **hidden_size** : Hidden state의 차원, int(default: 64, 범위: 1 이상)
 - **dropout** : dropout 확률, float(default: 0.1, 범위: 0 이상 1 이하)
 - **bidirectional** : 모델의 양방향성 여부, bool(default: True)
 - **num_epochs** : 학습 epoch 횟수, int(default: 150, 범위: 1 이상)
